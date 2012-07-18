@@ -75,8 +75,10 @@ class VertxPlugin implements Plugin<Project> {
     test.classpath = test.classpath.minus convention.sourceSets.main.runtimeClasspath
 
     Task build = project.tasks.getByName('build') // FIXME use static reference to build task
+    Task assemble = project.tasks.getByName('assemble') // FIXME use static reference to assemble task
+
     Task prepareModule = project.tasks.add('prepareVertxModule', Copy)
-    prepareModule.dependsOn build
+    prepareModule.dependsOn assemble
     prepareModule.destinationDir = project.file("build/mod/${project.name}-v${project.version}")
     prepareModule.with {
       from(project.configurations.runtime) { into 'lib' }
