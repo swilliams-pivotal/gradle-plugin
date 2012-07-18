@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vertx.gradle.tools.tasks
+package org.vertx.gradle.tools.plugins
 
 import groovy.lang.Closure
 import org.gradle.api.Project
@@ -25,7 +25,7 @@ import org.gradle.util.ConfigureUtil
  * @author pidster
  *
  */
-class VertxTestConvention {
+class VertxPluginConvention {
 
   private final Project project
 
@@ -33,26 +33,21 @@ class VertxTestConvention {
 
   private File modsDir
 
-  public VertxTestConvention(Project project) {
+  public VertxPluginConvention(Project project) {
     this.project = project
   }
 
-  public VertxTestConvention vertx(Closure closure) {
+  public VertxPluginConvention vertx(Closure closure) {
     ConfigureUtil.configure(closure, this)
     this
   }
 
-  public VertxTestConvention vertxTest(Closure closure) {
-    ConfigureUtil.configure(closure, this)
-    this
-  }
-
-  public VertxTestConvention timeout(long timeout) {
+  public VertxPluginConvention timeout(long timeout) {
     this.timeout = timeout
     this
   }
 
-  public VertxTestConvention modsDir(File modsDir) {
+  public VertxPluginConvention modsDir(File modsDir) {
     this.modsDir = modsDir
     this
   }
