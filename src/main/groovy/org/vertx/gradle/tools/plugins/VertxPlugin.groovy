@@ -79,6 +79,7 @@ class VertxPlugin implements Plugin<Project> {
     Task assemble = project.tasks.getByName('assemble') // FIXME use static reference to assemble task
 
     Task prepareModule = project.tasks.add('prepareVertxModule', Copy)
+    prepareModule.description = "Assembles a vert.x module in the build/mod/${project.name.replaceFirst('mod-', '')} dir"
     prepareModule.dependsOn assemble
     prepareModule.destinationDir = project.file("build/mod/${project.name.replaceFirst('mod-', '')}-v${project.version}")
     prepareModule.with {
