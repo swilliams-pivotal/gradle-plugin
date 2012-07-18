@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.bundling.Zip
 
@@ -79,7 +80,7 @@ class VertxPlugin implements Plugin<Project> {
 
     Task prepareModule = project.tasks.add('prepareVertxModule', Copy)
     prepareModule.dependsOn assemble
-    prepareModule.destinationDir = project.file("build/mod/${project.name}-v${project.version}")
+    prepareModule.destinationDir = project.file("build/mod/${project.name.replaceFirst('mod-', '')}-v${project.version}")
     prepareModule.with {
       from(project.configurations.runtime) { into 'lib' }
       from 'build/classes/main'
@@ -96,10 +97,24 @@ class VertxPlugin implements Plugin<Project> {
     packageModule.from project.file("build/mod")
 
     /*
-     * Add a Sync task that copies the output of the prepareModule
+     * TODO Add a Sync task that copies the output of the prepareModule
      * to the test-mods dir. 
      * 
      * test.dependsOn vertTest
+     */
+    /*
+    Task prepareVertxTest = project.tasks.add('prepareVertxTest', Sync)
+    prepareVertxTest.dependsOn prepareModule
+    prepareVertxTest.from project.file('build/mod')  // TODO take from convention?
+    prepareVertxTest.into project.file('build/tmp/test-mods') // TODO take from system property
+    test.dependsOn prepareVertxTest
+    */
+
+    /*
+     * TODO determine whether a custom vertx test task is a good idea
+     * 
+    Task vertxTest = project.tasks.add('vertxTest', Test)
+    test.dependsOn vertxTest
      */
   }
 
