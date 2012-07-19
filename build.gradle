@@ -21,16 +21,16 @@ apply from: 'gradle/setup.gradle'
 
 repositories {
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-    mavenCentral()
+  mavenCentral()
 }
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
 configurations {
-    compile {
-        transitive false
-    }
+  compile {
+    transitive false
+  }
 }
 
 dependencies {
@@ -38,12 +38,7 @@ dependencies {
 	groovy localGroovy()
 	compile("org.vert-x:vertx-core:$vertxVersion")
 	compile("org.vert-x:vertx-platform:$vertxVersion")
-//    compile("org.vert-x:vertx-lang-groovy:$vertxVersion") {
-//        transitive = false
-//    }
-    // compile("org.vert-x:vertx-testframework:$vertxVersion")
 }
-
 
 task upload(dependsOn: ['clean', 'build', 'uploadArchives']) {
 	group = 'vert.x'
