@@ -81,7 +81,7 @@ class VertxPlugin implements Plugin<Project> {
     Task prepareModule = project.tasks.add('prepareVertxModule', Copy)
     prepareModule.description = "Assembles a vert.x module in the build/mod/${project.name.replaceFirst('mod-', '')} dir"
     prepareModule.dependsOn assemble
-    prepareModule.destinationDir = project.file("build/mod/${modulename}-v${project.version}")
+    prepareModule.destinationDir = project.file("build/mod/${project.modulename}-v${project.version}")
     prepareModule.with {
       from(project.configurations.runtime) { into 'lib' }
       from 'build/classes/main'
