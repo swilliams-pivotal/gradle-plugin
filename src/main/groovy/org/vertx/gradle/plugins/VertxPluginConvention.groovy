@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.vertx.gradle.tools.plugins
+package org.vertx.gradle.plugins
 
 import groovy.lang.Closure
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
+
 
 
 /**
@@ -49,6 +50,11 @@ class VertxPluginConvention {
 
   public VertxPluginConvention modsDir(File modsDir) {
     this.modsDir = modsDir
+    this
+  }
+
+  public VertxPluginConvention modsDir(String modsDir) {
+    this.modsDir = project.file(modsDir)
     this
   }
 
