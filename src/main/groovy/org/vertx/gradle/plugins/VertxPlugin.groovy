@@ -64,7 +64,7 @@ class VertxPlugin implements Plugin<Project> {
       group = 'vert.x'
       description = 'Run vert.x integration tests'
 
-      systemProperty 'vertx.test.timeout', 15
+      systemProperty 'vertx.test.timeout', project.convention.plugins.vertxTest.timeout
       systemProperty 'vertx.mods', "${project.projectDir}/build/tmp/mod-test"
       systemProperty 'vertx.version', "${project.version}"
     
