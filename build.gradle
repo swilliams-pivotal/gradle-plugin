@@ -34,14 +34,15 @@ configurations {
 }
 
 dependencies {
-	compile gradleApi()
-	groovy localGroovy()
-	compile("org.vert-x:vertx-core:$vertxVersion")
-	compile("org.vert-x:vertx-platform:$vertxVersion")
-//    compile("org.vert-x:vertx-lang-groovy:$vertxVersion") {
-//        transitive = false
-//    }
-    // compile("org.vert-x:vertx-testframework:$vertxVersion")
+  groovy "org.codehaus.groovy:groovy-all:$groovyVersion"
+  compile gradleApi()
+  compile "org.vert-x:vertx-core:$vertxVersion"
+  compile "org.vert-x:vertx-platform:$vertxVersion"
+
+//  compile("org.vert-x:vertx-lang-groovy:$vertxVersion") {
+//  transitive = false
+//  }
+//  compile("org.vert-x:vertx-testframework:$vertxVersion")
 }
 
 

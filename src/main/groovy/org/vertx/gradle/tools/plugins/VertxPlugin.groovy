@@ -29,7 +29,7 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.bundling.Zip
 
-import org.vertx.gradle.tools.tasks.VertxTest
+//import org.vertx.gradle.tools.tasks.VertxTest
 import org.vertx.gradle.tools.tasks.VertxTestConvention
 
 
@@ -62,7 +62,7 @@ class VertxPlugin implements Plugin<Project> {
     Configuration testRuntime = project.configurations.findByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
     // compile.extendsFrom vertxProvided
 
-    project.convention.plugins.vertx = new VertxPluginConvention(project)
+    // project.convention.plugins.vertx = new VertxPluginConvention(project)
     project.convention.plugins.vertxTest = new VertxTestConvention(project)
 
     JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
@@ -71,7 +71,8 @@ class VertxPlugin implements Plugin<Project> {
     convention.sourceSets.main.runtimeClasspath = convention.sourceSets.main.runtimeClasspath.minus vertxProvided
 
     convention.sourceSets.test.compileClasspath = convention.sourceSets.test.compileClasspath.plus vertxProvided
-
+    
+    /*
     Test test = project.tasks.findByName('test')
     test.classpath = test.classpath.minus convention.sourceSets.main.runtimeClasspath
 
@@ -96,6 +97,7 @@ class VertxPlugin implements Plugin<Project> {
     packageModule.destinationDir = project.file('build/libs')
     packageModule.archiveName = 'mod.zip'
     packageModule.from project.file("build/mod")
+    */
 
     /*
      * TODO Add a Sync task that copies the output of the prepareModule

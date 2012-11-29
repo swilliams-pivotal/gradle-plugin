@@ -31,19 +31,19 @@ import org.gradle.api.tasks.testing.Test
  *
  */
 class VertxTest extends ConventionTask {
-  
-    private long timeout = 30
-  
-    private File modsDir = project.file('build/tmp/mods-dir')
 
-    @TaskAction
-    public void testVertx() {
-        JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-        
-        Test test = project.tasks.add('vertxTestRunner', Test)
-        test.systemProperty 'vertx.test.timeout', timeout
-        test.systemProperty 'vertx.mods', modsDir.path
-        test.classpath = test.classpath.minus(project.convention.sourceSets.main.runtimeClasspath)
-    }
-  
+  private long timeout = 30
+
+  private File modsDir = project.file('build/tmp/mods-dir')
+
+  @TaskAction
+  public void testVertx() {
+    JavaPluginConvention javaPluginConvention = project.convention.getPlugin(JavaPluginConvention)
+    VertxTestConvention vertxTestConvention = project.convention.getPlugin(VertxTestConvention)
+
+    Test test = project.tasks.add('vertxTestRunner', Test)
+    test.systemProperty 'vertx.test.timeout', timeout
+    test.systemProperty 'vertx.mods', modsDir.path
+    test.classpath = test.classpath.minus(project.convention.sourceSets.main.runtimeClasspath)
+  }
 }

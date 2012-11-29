@@ -51,4 +51,5 @@ class VertxPluginConvention {
     this.modsDir = modsDir
     this
   }
+
 }
