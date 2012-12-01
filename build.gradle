@@ -36,8 +36,12 @@ configurations {
 dependencies {
   groovy "org.codehaus.groovy:groovy-all:$groovyVersion"
   compile gradleApi()
-//  compile "org.vert-x:vertx-core:$vertxVersion"
-//  compile "org.vert-x:vertx-platform:$vertxVersion"
+  compile("org.vert-x:vertx-core:$vertxVersion") {
+    transitive = true
+  }
+  compile("org.vert-x:vertx-platform:$vertxVersion") {
+    transitive = true
+  }
 }
 
 task upload(dependsOn: ['clean', 'build', 'uploadArchives']) {

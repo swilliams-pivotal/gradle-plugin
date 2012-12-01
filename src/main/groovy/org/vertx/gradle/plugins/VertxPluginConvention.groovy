@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.vertx.gradle.plugins
 
 import groovy.lang.Closure
@@ -32,6 +31,10 @@ class VertxPluginConvention {
 
   private long timeout
 
+  private long startPort
+
+  private long stopPort
+
   private File modsDir
 
   public VertxPluginConvention(Project project) {
@@ -45,6 +48,16 @@ class VertxPluginConvention {
 
   public VertxPluginConvention timeout(long timeout) {
     this.timeout = timeout
+    this
+  }
+
+  public VertxPluginConvention startPort(long startPort) {
+    this.startPort = startPort
+    this
+  }
+
+  public VertxPluginConvention stopPort(long stopPort) {
+    this.stopPort = stopPort
     this
   }
 
