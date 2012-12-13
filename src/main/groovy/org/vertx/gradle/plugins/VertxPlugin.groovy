@@ -16,6 +16,7 @@
 package org.vertx.gradle.plugins
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.Action
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.Test
 
 import org.vertx.gradle.tasks.RunVertxModule
+import org.vertx.gradle.tasks.RunVertxVerticle
 
 
 class VertxPlugin implements Plugin<Project> {
@@ -34,13 +36,17 @@ class VertxPlugin implements Plugin<Project> {
   void apply(Project project) {
     project.apply plugin: 'java'
 
-    project.convention.plugins.vertxTest = new VertxPluginConvention(project)
-    project.extensions.create("vertx", VertxInstanceExtension)
-
+    // project.plugins.vertxInteg = new VertxPluginConvention(project)
+    project.extensions.create("vertx", VertxInstanceExtension, project)
+    project.extensions.create("vertxInteg", VertxIntegExtension, project)
+    
     project.with {
       configurations {
-        vertxProvided
-        compile.extendsFrom vertxProvided
+        provided {
+          visible = false
+        }
+        compile.extendsFrom provided
+        runtime.extendsFrom provided
       }
 
       sourceSets {
@@ -57,53 +63,70 @@ class VertxPlugin implements Plugin<Project> {
       into "build/mod/${project.modulename}-v${project.version}"
       from project.sourceSets.main.output.classesDir
       from project.sourceSets.main.output.resourcesDir
-      into( 'lib' ) { from project.configurations.compile }
+      into( 'lib' ) { 
+        from (project.configurations.runtime - project.configurations.provided)
+      }
     })
 
     project.task([type: Sync, dependsOn: ['prepareVertxModule']], 'prepareVertxInteg', {
       group = ''
       description = ''
-      from 'build/mod'
-      into 'build/tmp/mod-test'
+      from project.extensions.vertxInteg.modDir
+      into project.extensions.vertxInteg.modsDir
     })
 
-    project.task([type: Zip, dependsOn: ['prepareVertxModule']], 'vertxPackageModule', {
+    def vertxPackageModule = project.task([type: Zip, dependsOn: ['prepareVertxModule']], 'vertxPackageModule', {
       group = 'vert.x'
       description = "Assembles a vert.x module in 'mod.zip' format"
       destinationDir = project.file('build/libs')
       archiveName = 'mod.zip'
-      from project.file("build/mod")
+      from project.file(project.extensions.vertxInteg.modDir)
     })
 
-    project.task([type: Test, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxInteg', {
+    project.artifacts.add "archives", vertxPackageModule
+
+    def vertxInteg = project.task([type: Test, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxInteg', {
       group = 'vert.x'
       description = 'Run vert.x integration tests'
-
-      systemProperty 'vertx.test.timeout', project.convention.plugins.vertxTest.timeout
-      systemProperty 'vertx.mods', "${project.projectDir}/build/tmp/mod-test"
-      systemProperty 'vertx.version', "${project.version}"
-    
-      testLogging.showStandardStreams = true
 
       testClassesDir = project.sourceSets.vertxInteg.output.classesDir
 
       // Add stuff we DO need
-      classpath += project.configurations.vertxIntegCompile
       classpath += project.configurations.vertxIntegRuntime
       classpath += project.sourceSets.vertxInteg.output
       // Remove stuff we DO NOT need
       classpath -= project.sourceSets.main.output
+
+      // FIXME lazily evaluate these:
+      testLogging.showStandardStreams = true
     })
 
-    project.task([type: RunVertxModule, dependsOn: ['vertxIntegClasses']], 'vertxRunModule', {
+    project.afterEvaluate(new Action<Project>() {
+      public void execute(Project p) {
+        p.tasks.withType(Test, new Action<Test>() {
+          public void execute(Test test) {
+            vertxInteg.systemProperty 'vertx.test.timeout', project.extensions.vertxInteg.testTimeout
+            vertxInteg.systemProperty 'vertx.mods', project.extensions.vertxInteg.modsDir
+            vertxInteg.systemProperty 'vertx.version', "${project.vertxVersion}"
+            vertxInteg.testLogging.showStandardStreams = project.extensions.vertxInteg.showStandardStreams
+          }
+        })
+      }
+    })
+
+    project.tasks.findByName("check").dependsOn vertxInteg
+
+    // vertxInteg.convention.create("vertxInteg", VertxPluginExtension)
+
+    project.task([type: RunVertxModule, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxRunModule', {
       group = 'vert.x'
       description = 'Run vert.x integration tests'
+      classpath = project.sourceSets.vertxInteg.output + project.configurations.provided
+    })
 
-//      // Add stuff we DO need
-//      classpath += project.configurations.vertxProvided + project.configurations.vertxIntegCompile
-//      classpath += project.files(project.sourceSets.vertxInteg.output.classesDir, project.sourceSets.vertxInteg.output.resourcesDir)
-//      // Remove stuff we DO NOT need
-//      classpath -= project.files(project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir)
+    project.task([type: RunVertxVerticle, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxRunVerticle', {
+      group = 'vert.x'
+      description = 'Run vert.x integration tests'
     })
 
   }

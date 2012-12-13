@@ -51,6 +51,11 @@ class VertxPluginConvention {
     this
   }
 
+  public VertxPluginConvention testTimeout(long timeout) {
+    this.timeout = timeout
+    this
+  }
+
   public VertxPluginConvention startPort(long startPort) {
     this.startPort = startPort
     this

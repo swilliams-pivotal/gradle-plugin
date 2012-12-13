@@ -29,18 +29,18 @@ targetCompatibility = '1.7'
 
 configurations {
   compile {
-    transitive false
+//    transitive true
   }
 }
 
 dependencies {
   groovy "org.codehaus.groovy:groovy-all:$groovyVersion"
   compile gradleApi()
-  compile("org.vert-x:vertx-core:$vertxVersion") {
-    transitive = true
-  }
   compile("org.vert-x:vertx-platform:$vertxVersion") {
-    transitive = true
+    transitive = false
+  }
+  compile("org.vert-x:vertx-core:$vertxVersion") {
+    transitive = false
   }
 }
 

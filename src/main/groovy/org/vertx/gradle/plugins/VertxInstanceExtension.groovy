@@ -15,10 +15,20 @@
  */
 package org.vertx.gradle.plugins
 
+import org.gradle.api.Project
+
 class VertxInstanceExtension {
 
   String hostname = 'localhost'
 
   int port = -1
+
+  String modDir = 'build/mod'
+
+  private Project project
+
+  def VertxInstanceExtension(Project project) {
+    this.project = project
+  }
 
 }
