@@ -1,26 +1,15 @@
 package org.vertx.gradle.tasks
 
-import java.lang.reflect.Method
-import java.util.concurrent.TimeUnit
-
-import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.TaskAction
-import org.gradle.process.internal.DefaultJavaExecAction
 
-//import org.vertx.java.core.Handler
-//import org.vertx.java.core.json.JsonObject
+class AbstractVertxInstanceTask extends DefaultTask {
 
+  def manager
 
-class RunVertxModule extends DefaultTask {
+  def container
 
-  RunVertxModuleExtension config
-
-  @TaskAction
-  def runVertxModule() {
+  public void initVerticleManager(config) {
 
     FileCollection classpath = project.configurations.provided + project.configurations.vertxIntegRuntime
     def urlList = classpath.files.collect { File f->  
@@ -36,10 +25,16 @@ class RunVertxModule extends DefaultTask {
     Class containerClass = Class.forName('org.vertx.java.deploy.Container', true, loader)
     Class jsonClass = Class.forName('org.vertx.java.core.json.JsonObject', true, loader)
 
-    def vertx = vertxClass.newInstance()
-    def manager = managerClass.newInstance(vertx)
-    def container = containerClass.newInstance(manager)
+    def vertx = vertxClass.newInstance(project.extensions.vertx.port, 'localhost')
     def json = jsonClass.newInstance()
+    this.manager = managerClass.newInstance(vertx)
+    this.container = containerClass.newInstance(manager)
+
+    addShutdownHook { manager.unblock() }
+
+    System.setProperty('vertx.mods', project.file(project.extensions.vertxInteg.modsDir).absolutePath)
+
+    println 'vertx.mods=' + System.getProperty('vertx.mods')
 
     container.deployModule(config.name, json, config.instances)
     manager.block()

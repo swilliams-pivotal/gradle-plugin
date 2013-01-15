@@ -23,12 +23,15 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.Test
 
+import org.vertx.gradle.tasks.RunVerticle
+import org.vertx.gradle.tasks.RunVerticleExtension;
 import org.vertx.gradle.tasks.RunVertxModule
-import org.vertx.gradle.tasks.RunVertxVerticle
+import org.vertx.gradle.tasks.RunVertxModuleExtension;
 
 
 class VertxPlugin implements Plugin<Project> {
@@ -36,10 +39,12 @@ class VertxPlugin implements Plugin<Project> {
   void apply(Project project) {
     project.apply plugin: 'java'
 
-    // project.plugins.vertxInteg = new VertxPluginConvention(project)
-    project.extensions.create("vertx", VertxInstanceExtension, project)
-    project.extensions.create("vertxInteg", VertxIntegExtension, project)
-    
+    RunVerticleExtension verticleConfig = project.extensions.create("verticle", RunVerticleExtension, project)
+    RunVertxModuleExtension vertxModuleConfig = project.extensions.create("vertxModule", RunVertxModuleExtension, project)
+
+    VertxInstanceExtension vertxConfig = project.extensions.create("vertx", VertxInstanceExtension, project)
+    VertxIntegExtension integConfig = project.extensions.create("vertxInteg", VertxIntegExtension, project)
+
     project.with {
       configurations {
         provided {
@@ -64,7 +69,7 @@ class VertxPlugin implements Plugin<Project> {
       from project.sourceSets.main.output.classesDir
       from project.sourceSets.main.output.resourcesDir
       into( 'lib' ) { 
-        from (project.configurations.runtime - project.configurations.provided)
+        from (project.configurations.runtime - (project.configurations.provided + project.configurations.groovy))
       }
     })
 
@@ -83,9 +88,10 @@ class VertxPlugin implements Plugin<Project> {
       from project.file(project.extensions.vertxInteg.modDir)
     })
 
+    // Ensure package is built 
     project.artifacts.add "archives", vertxPackageModule
 
-    def vertxInteg = project.task([type: Test, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxInteg', {
+    Test vertxInteg = project.task([type: Test, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxInteg', {
       group = 'vert.x'
       description = 'Run vert.x integration tests'
 
@@ -116,19 +122,10 @@ class VertxPlugin implements Plugin<Project> {
 
     project.tasks.findByName("check").dependsOn vertxInteg
 
-    // vertxInteg.convention.create("vertxInteg", VertxPluginExtension)
+    RunVerticle vertxRunVerticle = project.task("vertxRunVerticle", type: RunVerticle, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses'])
+    vertxRunVerticle.config = verticleConfig
 
-    project.task([type: RunVertxModule, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxRunModule', {
-      group = 'vert.x'
-      description = 'Run vert.x integration tests'
-      classpath = project.sourceSets.vertxInteg.output + project.configurations.provided
-    })
-
-    project.task([type: RunVertxVerticle, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses']], 'vertxRunVerticle', {
-      group = 'vert.x'
-      description = 'Run vert.x integration tests'
-    })
-
+    RunVertxModule vertxRunModule = project.task("vertxRunModule", type: RunVertxModule, dependsOn: ['prepareVertxModule', 'prepareVertxInteg', 'vertxIntegClasses'])
+    vertxRunModule.config = vertxModuleConfig
   }
-
 }
