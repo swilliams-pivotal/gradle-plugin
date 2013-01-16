@@ -17,18 +17,17 @@ package org.vertx.gradle.plugins
 
 import org.gradle.api.Project
 
+
 class VertxInstanceExtension {
 
+  private final Project project
+
   String host = 'localhost'
-
   int port = -1
-
   String modDir = 'build/mod'
-
-  String tempMods = 'build/tmp/mods'
-
-  private Project project
-
+  String tempMods = 'build/tmp/mods-test'
+  String loggingProperties
+  
   def VertxInstanceExtension(Project project) {
     this.project = project
   }

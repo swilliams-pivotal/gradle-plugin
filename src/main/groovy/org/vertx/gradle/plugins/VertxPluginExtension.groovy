@@ -23,15 +23,17 @@ import org.gradle.util.ConfigureUtil
 
 class VertxPluginExtension {
 
+  private final Project project
   long testTimeout = 15
   int port = -1
   String hostname = 'localhost'
   String modDir = 'build/mod'
   String modsDir = 'build/tmp/mods-test'
+  String loggingProperties = null
 
-//  public VertxPluginExtension(Project project) {
-//    this.project = project
-//  }
+  public VertxPluginExtension(Project project) {
+    this.project = project
+  }
 
   public VertxPluginExtension vertx(Closure closure) {
     ConfigureUtil.configure(closure, this)
@@ -67,14 +69,4 @@ class VertxPluginExtension {
     this.modsDir = modsDir
     this
   }
-
-
-//  public long getTestTimeout() {
-//    this.testTimeout;
-//  }
-//
-//  public void setTestTimeout(long testTimeout) {
-//    this.testTimeout = testTimeout;
-//  }
-
 }

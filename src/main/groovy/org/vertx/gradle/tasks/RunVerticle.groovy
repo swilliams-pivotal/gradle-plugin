@@ -6,28 +6,24 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskAction
 
 
-class RunVerticle extends DefaultTask {
+class RunVerticle extends AbstractVertxInstanceTask {
 
   RunVerticleExtension config
 
   @TaskAction
-  def runVertx() {
+  def runVerticle() {
 
-    FileCollection classpath = project.configurations.provided + project.configurations.vertxInteg
-    def urlList = classpath.files.collect { File f->  
-      f.toURI().toURL()
+    initVerticleManager(config)
+    def json = super.toJSON(config.json)
+
+    if (config.worker) {
+      container.deployWorkerVerticle(config.main, json, config.instances)
+    }
+    else {
+      container.deployVerticle(config.main, json, config.instances)
     }
 
-    URL[] urls = new URL[urlList.size()]
-    urlList.toArray(urls)
-
-    ClassLoader loader = new URLClassLoader(urls)
-    Class vertxClass = Class.forName('org.vertx.java.core.impl.DefaultVertx', true, loader)
-    Class managerClass = Class.forName('org.vertx.java.deploy.impl.VerticleManager', true, loader)
-
-    def vertx = vertxClass.newInstance()
-    def manager = managerClass.newInstance(vertx)
-
+    waitForever()
   }
 
 }
