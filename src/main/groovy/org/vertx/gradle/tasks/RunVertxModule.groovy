@@ -22,12 +22,25 @@ class RunVertxModule extends AbstractVertxInstanceTask {
   @TaskAction
   def runVertxModule() {
 
-    initVerticleManager(config)
-    def json = super.toJSON(config.json)
+    try {
+      load(config)
 
-    container.deployModule(config.name, json, config.instances)
+      def json = mapToJSON(config.json)
 
-    waitForever()
+      container?.deployModule(config.name, json, config.instances)
+
+//      waitFor(10000L)
+//      waitFor(10L, TimeUnit.SECONDS)
+//      waitForever()
+      Thread.sleep(10000L) { container.undeployAll() }
+
+    }
+    catch (Throwable t) {
+      t.printStackTrace()
+    }
+    finally {
+      super.cleanup()
+    }
   }
 
 }

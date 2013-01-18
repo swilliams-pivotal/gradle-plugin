@@ -16,9 +16,12 @@
 package org.vertx.gradle.tasks
 
 import java.io.File;
+import java.util.Map;
+import java.util.Properties;
 
 import groovy.lang.Closure
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.ConfigureUtil
 import org.vertx.java.core.json.JsonObject;
 
@@ -44,8 +47,14 @@ class RunVerticleExtension {
 
   File modDir
 
+  Properties systemProperties = new Properties()
+
+  FileCollection classpath
+
   public RunVerticleExtension(Project project) {
     this.project = project
+    this.modDir = project.file('build/mod')
+    this.classpath = project.files('src/vertxInteg/resources')
   }
 
   public RunVerticleExtension verticle(Closure closure) {
@@ -58,6 +67,11 @@ class RunVerticleExtension {
     this
   }
 
+  public RunVerticleExtension json(Map json) {
+    this.json = json
+    this
+  }
+
   public RunVerticleExtension urls(String[] urls) {
     this.urls = urls
     this
@@ -65,6 +79,16 @@ class RunVerticleExtension {
 
   public RunVerticleExtension instances(int instances) {
     this.instances = instances
+    this
+  }
+
+  public RunVerticleExtension modDir(File modDir) {
+    this.modDir = modDir
+    this
+  }
+
+  public RunVerticleExtension systemProperty(String name, String value) {
+    systemProperties.setProperty(name, value)
     this
   }
 

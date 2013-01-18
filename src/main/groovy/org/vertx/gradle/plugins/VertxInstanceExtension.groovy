@@ -23,7 +23,7 @@ class VertxInstanceExtension {
   private final Project project
 
   String host = 'localhost'
-  int port = -1
+  int port = 0
   String modDir = 'build/mod'
   String tempMods = 'build/tmp/mods-test'
   String loggingProperties

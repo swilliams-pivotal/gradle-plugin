@@ -17,6 +17,7 @@ package org.vertx.gradle.tasks
 
 import groovy.lang.Closure
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.util.ConfigureUtil
 
 
@@ -36,10 +37,15 @@ class RunVertxModuleExtension {
 
   File modDir
 
+  Properties systemProperties = new Properties()
+
+  FileCollection classpath
+
   public RunVertxModuleExtension(Project project) {
     this.project = project
-    this.name = "${project.name}-v${project.version}"
+    this.name = "${project.modulename}-v${project.version}"
     this.modDir = project.file('build/mod')
+    this.classpath = project.files('src/vertxInteg/resources')
   }
 
   public RunVertxModuleExtension vertxModule(Closure closure) {
@@ -54,6 +60,21 @@ class RunVertxModuleExtension {
 
   public RunVertxModuleExtension instances(int instances) {
     this.instances = instances
+    this
+  }
+
+  public RunVertxModuleExtension json(Map json) {
+    this.json = json
+    this
+  }
+
+  public RunVertxModuleExtension modDir(File modDir) {
+    this.modDir = modDir
+    this
+  }
+
+  public RunVertxModuleExtension systemProperty(String name, String value) {
+    systemProperties.setProperty(name, value)
     this
   }
 

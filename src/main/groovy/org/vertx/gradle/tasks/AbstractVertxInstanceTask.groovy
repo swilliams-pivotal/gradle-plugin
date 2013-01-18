@@ -2,68 +2,89 @@ package org.vertx.gradle.tasks
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection
+import org.gradle.util.MutableURLClassLoader
+import org.vertx.gradle.plugins.ParentLastURLClassLoader
+import org.vertx.java.core.Handler
 
 
 class AbstractVertxInstanceTask extends DefaultTask {
+
+  def static DEFAULT_VERTX = 'org.vertx.java.core.impl.DefaultVertx'
+  def static GROOVY_VERTX = 'org.vertx.groovy.core.Vertx'
+  def static VERTICLE_MANAGER = 'org.vertx.java.deploy.impl.VerticleManager'
+  def static CONTAINER = 'org.vertx.java.deploy.Container'
+  def static JSON_OBJECT = 'org.vertx.java.core.json.JsonObject'
 
   def manager
 
   def container
 
-  ClassLoader loader
+  private ClassLoader loader
 
-  public void initVerticleManager(config) {
+  public void load(config) throws Exception {
 
-    FileCollection classpath = project.configurations.provided + project.configurations.vertxIntegRuntime
-    def urlList = classpath.files.collect { File f->
-      println f.absolutePath
-      f.toURI().toURL()
-    }
+    FileCollection classpath = project.configurations.provided + project.configurations.testCompile
 
-    String loggingProperties
-    if (project.extensions.vertx.loggingProperties == null) { // ! should do this
-      URL url = getClass().getClassLoader().getResource('logging.properties')
-      urlList.add url
-      loggingProperties = url.toURI().path
-    }
-    else {
-      loggingProperties = project.extensions.vertx.loggingProperties
-    }
+    // add additional classpath as applicable
+    if (config.classpath) classpath += config.classpath
+    if (config.hasProperty('urls')) classpath + config.urls
 
-    println "loggingProperties: " + loggingProperties
+    System.getProperties().putAll(config.systemProperties)
 
-    URL[] urls = new URL[urlList.size()]
-    urlList.toArray(urls)
-
-    // System.setProperty('java.util.logging.config.file', loggingProperties)
-    System.setProperty('vertx.mods', project.file(project.extensions.vertx.tempMods).absolutePath)
-
-    println 'java.util.logging.config.file=' + loggingProperties
-    println 'vertx.mods=' + System.getProperty('vertx.mods')
-
-    ClassLoader parent = Thread.currentThread().getContextClassLoader()
-    this.loader = new URLClassLoader(parent, urls)
+    // ClassLoading funkiness begins here...
+    this.loader = loadClasspath(classpath)
     Thread.currentThread().setContextClassLoader(loader)
 
-    Class vertxClass = Class.forName('org.vertx.java.core.impl.DefaultVertx', true, loader)
-    Class managerClass = Class.forName('org.vertx.java.deploy.impl.VerticleManager', true, loader)
-    Class containerClass = Class.forName('org.vertx.java.deploy.Container', true, loader)
+    // DEBUG!
+    println "langs.properties: " + loader.findResource('langs.properties')
+    println "logging.properties: " + loader.findResource('logging.properties')
+    println "cluster.xml: " + loader.findResource('cluster.xml')
+    println "vertx.mods: ${System.getProperty('vertx.mods')}"
 
-//    def vertx = vertxClass.newInstance(project.extensions.vertx.port, project.extensions.vertx.host)
+    Class vertxClass = loader.loadClass(DEFAULT_VERTX)
+    Class vertxGroovyClass = loader.loadClass(GROOVY_VERTX)
+    Class managerClass = loader.loadClass(VERTICLE_MANAGER)
+    Class containerClass = loader.loadClass(CONTAINER)
+
     def vertx = vertxClass.newInstance(project.extensions.vertx.port, project.extensions.vertx.host)
+    def vertg = vertxGroovyClass.newInstance(vertx)
     this.manager = managerClass.newInstance(vertx)
     this.container = containerClass.newInstance(manager)
 
-    addShutdownHook { manager.unblock() }
+    addShutdownHook { manager?.unblock() }
   }
 
-  def waitForever() {
+  private URLClassLoader loadClasspath(FileCollection classpath) {
+
+    def urls = classpath.files.collect { File f-> 
+      if (f.name.endsWith('.jar')) {
+        new URL('jar:file:' + f.absolutePath + '!/')  // ugh.
+      }
+      else {
+        f.toURI().toURL()
+      }
+    }
+
+    URL[] arr = new URL[urls.size()]
+    arr = urls.toArray(arr)
+
+    ClassLoader parent = Thread.currentThread().getContextClassLoader()
+
+    new URLClassLoader(arr)
+    // new URLClassLoader(arr, parent)
+    // new ParentLastURLClassLoader(arr, parent)
+  }
+
+  protected void waitForever() {
     manager?.block()
   }
 
-  def toJSON(Map map) {
-    Class jsonClass = Class.forName('org.vertx.java.core.json.JsonObject', true, loader)
-    jsonClass.newInstance(map)
+  protected void cleanup() {
+    loader?.close()
+  }
+
+  def mapToJSON(Map map) {
+    loader?.loadClass(JSON_OBJECT).newInstance(map)
   }
 
 }
