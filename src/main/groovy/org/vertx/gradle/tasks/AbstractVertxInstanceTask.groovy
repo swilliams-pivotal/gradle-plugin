@@ -3,7 +3,6 @@ package org.vertx.gradle.tasks
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection
 import org.gradle.util.MutableURLClassLoader
-import org.vertx.gradle.plugins.ParentLastURLClassLoader
 import org.vertx.java.core.Handler
 
 
@@ -68,11 +67,7 @@ class AbstractVertxInstanceTask extends DefaultTask {
     URL[] arr = new URL[urls.size()]
     arr = urls.toArray(arr)
 
-    ClassLoader parent = Thread.currentThread().getContextClassLoader()
-
     new URLClassLoader(arr)
-    // new URLClassLoader(arr, parent)
-    // new ParentLastURLClassLoader(arr, parent)
   }
 
   protected void waitForever() {
